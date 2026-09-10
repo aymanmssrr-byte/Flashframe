@@ -1,0 +1,23 @@
+{
+  "name": "flashframe",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Insere une image flash au debut d'une video pour pousser le replay sur Instagram Reels",
+  "type": "module",
+  "main": "src/server.js",
+  "engines": {
+    "node": ">=20"
+  },
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "node --watch src/server.js",
+    "test": "node test/ffmpeg.test.js",
+    "test:api": "node test/api.test.js",
+    "test:admin": "node test/admin.test.js"
+  },
+  "dependencies": {
+    "@fastify/multipart": "^9.4.0",
+    "archiver": "^7.0.1",
+    "fastify": "^5.12.3"
+  }
+}
