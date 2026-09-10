@@ -18,10 +18,11 @@ WORKDIR /app
 COPY package.json package-lock.json* ./
 RUN npm ci --omit=dev || npm install --omit=dev
 
-COPY src ./src
-COPY public ./public
+# fichiers listes un par un : rien d'autre du depot n'entre dans l'image,
+# et aucun fichier cache n'est necessaire pour que le build soit correct
+COPY server.js ffmpeg.js library.js store.js index.html ./
 
 EXPOSE 3000
 
 # ffmpeg fait le gros du travail : un seul worker node suffit
-CMD ["node", "src/server.js"]
+CMD ["node", "server.js"]

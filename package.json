@@ -4,16 +4,16 @@
   "private": true,
   "description": "Insere une image flash au debut d'une video pour pousser le replay sur Instagram Reels",
   "type": "module",
-  "main": "src/server.js",
+  "main": "server.js",
   "engines": {
     "node": ">=20"
   },
   "scripts": {
-    "start": "node src/server.js",
-    "dev": "node --watch src/server.js",
-    "test": "node test/ffmpeg.test.js",
-    "test:api": "node test/api.test.js",
-    "test:admin": "node test/admin.test.js"
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "test": "node ffmpeg.test.js",
+    "test:api": "node api.test.js",
+    "test:admin": "node admin.test.js"
   },
   "dependencies": {
     "@fastify/multipart": "^9.4.0",

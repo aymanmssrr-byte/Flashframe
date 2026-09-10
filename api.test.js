@@ -11,10 +11,10 @@ import { mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { probe, run } from '../src/ffmpeg.js';
+import { probe, run } from './ffmpeg.js';
 
-const ROOT = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
-const DIR = path.join(ROOT, 'test', '.tmp-api');
+const ROOT = path.dirname(fileURLToPath(import.meta.url));
+const DIR = path.join(ROOT, '.tmp-api');
 const LIB = path.join(DIR, 'library');
 const PORT = 3997;
 const BASE = `http://127.0.0.1:${PORT}`;
@@ -36,7 +36,7 @@ const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 const blob = (buf, type) => new Blob([buf], { type });
 
 function startServer() {
-  const server = spawn(process.execPath, [path.join(ROOT, 'src', 'server.js')], {
+  const server = spawn(process.execPath, [path.join(ROOT, 'server.js')], {
     env: {
       ...process.env,
       PORT: String(PORT),
@@ -262,7 +262,7 @@ async function main() {
 
     // --- tirage aleatoire ---------------------------------------------------
     await test('sur 3 images et 6 videos, chaque image sort exactement 2 fois', async () => {
-      const { pickRandom } = await import('../src/library.js');
+      const { pickRandom } = await import('./library.js');
       const lib = [{ id: 'a' }, { id: 'b' }, { id: 'c' }];
       const picks = pickRandom(lib, 6).map((p) => p.id);
       const counts = picks.reduce((m, id) => ({ ...m, [id]: (m[id] || 0) + 1 }), {});
@@ -272,7 +272,7 @@ async function main() {
     });
 
     await test('sur 3 images et 2 videos, deux images differentes', async () => {
-      const { pickRandom } = await import('../src/library.js');
+      const { pickRandom } = await import('./library.js');
       const lib = [{ id: 'a' }, { id: 'b' }, { id: 'c' }];
       for (let i = 0; i < 30; i += 1) {
         const picks = pickRandom(lib, 2).map((p) => p.id);

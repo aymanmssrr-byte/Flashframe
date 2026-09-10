@@ -14,7 +14,7 @@ import { mkdir, rm } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { capabilities, encode, enableExpr, probe, run } from '../src/ffmpeg.js';
+import { capabilities, encode, enableExpr, probe, run } from './ffmpeg.js';
 
 const DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), '.tmp');
 const RED = [237, 28, 36];

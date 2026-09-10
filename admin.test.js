@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import { spawn } from 'node:child_process';
 import { mkdir, readFile, rm } from 'node:fs/promises';
 import path from 'node:path';
-import { run } from '../src/ffmpeg.js';
+import { run } from './ffmpeg.js';
 
 const DIR = '/tmp/admin-test';
 const PORT = 3995;
@@ -24,7 +24,7 @@ const img = path.join(DIR, 'v.png');
 await run('ffmpeg', ['-v','error','-y','-f','lavfi','-i','color=c=0xed1c24:s=800x800','-frames:v','1', img]);
 const imgBuf = await readFile(img);
 
-const server = spawn(process.execPath, [new URL('../src/server.js', import.meta.url).pathname], {
+const server = spawn(process.execPath, [new URL('./server.js', import.meta.url).pathname], {
   env: { ...process.env, PORT: String(PORT), WORK_DIR: DIR + '/work', LIBRARY_DIR: DIR + '/lib',
          ADMIN_CODE: CODE, LOG_LEVEL: 'error' },
   stdio: 'ignore',

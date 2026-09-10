@@ -39,8 +39,9 @@ En local sans Docker (ffmpeg doit être dans le PATH) :
 ```bash
 npm install
 npm start          # http://localhost:3000
-npm test           # moteur ffmpeg
-npm run test:api   # parcours HTTP complet
+npm test            # moteur ffmpeg
+npm run test:api    # parcours HTTP complet
+npm run test:admin  # code d'accès
 ```
 
 Sans `LIBRARY_DIR`, les images vont dans `./data/library`.
@@ -208,11 +209,14 @@ et survie de la bibliothèque à un redémarrage du serveur.
 
 ## Structure
 
+Tous les fichiers sont à la racine, sans sous-dossiers : c'est ce qui rend
+l'envoi sur GitHub increvable, y compris par glisser-déposer.
+
 ```
-src/ffmpeg.js      ffprobe, détection des capacités, filtre, encodage
-src/library.js     la bibliothèque d'images et le tirage aléatoire
-src/store.js       jobs en mémoire, SSE, TTL et balayage
-src/server.js      les routes
-public/index.html  toute l'app front, deux écrans
-test/              moteur ffmpeg + parcours HTTP
+server.js       les routes
+ffmpeg.js       ffprobe, détection des capacités, filtre, encodage
+library.js      la bibliothèque d'images et le tirage aléatoire
+store.js        jobs en mémoire, SSE, TTL et balayage
+index.html      toute l'app front, deux écrans
+*.test.js       moteur ffmpeg, API, code d'accès
 ```

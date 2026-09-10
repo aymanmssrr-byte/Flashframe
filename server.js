@@ -32,7 +32,6 @@ import {
 } from './store.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-const PUBLIC_DIR = path.join(__dirname, '..', 'public');
 
 const MAX_VIDEO_BYTES = Number(process.env.MAX_FILE_BYTES || 500 * 1024 * 1024);
 const MAX_VIDEOS = Number(process.env.MAX_BATCH || 20);
@@ -58,7 +57,7 @@ await app.register(multipart, {
   limits: { fileSize: MAX_VIDEO_BYTES, files: Math.max(MAX_VIDEOS, MAX_IMAGES), fields: 10 },
 });
 
-const INDEX_HTML = await readFile(path.join(PUBLIC_DIR, 'index.html'), 'utf8');
+const INDEX_HTML = await readFile(path.join(__dirname, 'index.html'), 'utf8');
 
 app.get('/', async (req, reply) => {
   reply.header('Content-Type', 'text/html; charset=utf-8');
