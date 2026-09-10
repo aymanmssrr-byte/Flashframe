@@ -11,7 +11,6 @@ ENV NODE_ENV=production \
 
 # /data doit etre un volume : c'est la seule chose a garder entre deux deploiements
 RUN mkdir -p /data/library
-VOLUME ["/data"]
 
 WORKDIR /app
 
