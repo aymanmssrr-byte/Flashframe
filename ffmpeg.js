@@ -76,9 +76,15 @@ export function spawnFfmpeg(args, { onStderr } = {}) {
   });
   const done = new Promise((resolve, reject) => {
     child.on('error', reject);
-    child.on('close', (code) => {
-      if (code === 0) resolve({ stderr });
-      else reject(Object.assign(new Error(`ffmpeg code ${code}\n${stderr}`), { code, stderr }));
+    child.on('close', (code, signal) => {
+      if (code === 0) return resolve({ stderr });
+      // code null + signal = process tue de l'exterieur, presque toujours le
+      // noyau qui reclame la memoire. Ce n'est pas un probleme de format.
+      const killed = code === null || signal === 'SIGKILL';
+      reject(Object.assign(
+        new Error(`ffmpeg ${killed ? `tue par ${signal || 'le systeme'}` : `code ${code}`}\n${stderr}`),
+        { code, signal, killed, stderr },
+      ));
     });
   });
   return { child, done };
@@ -279,9 +285,12 @@ export function buildFilterComplex({ meta, frames, cover, caps }) {
     if (t) parts.push(t);
   }
 
-  if (meta.isHdr) parts.push(tonemapChain(caps));
-
+  // Le redimensionnement vient AVANT le tonemap, jamais l'inverse : converti en
+  // flottant 32 bits, une frame 4K pese 100 Mo contre 25 Mo en 1080x1920. Sur un
+  // serveur a 1 Go, l'ordre inverse fait tuer ffmpeg par le noyau.
   parts.push(FIT);
+
+  if (meta.isHdr) parts.push(tonemapChain(caps));
 
   const base = `[0:v]${parts.join(',')}[base]`;
   const img = `[1:v]${FIT}[img]`;
@@ -299,6 +308,12 @@ export function buildEncodeArgs({ input, image, output, meta, frames, cover, cap
     '-hide_banner',
     '-nostdin',
     '-y',
+    // Bride la parallelisation : chaque thread de decodage et de filtrage
+    // duplique les tampons d'image. Sur un conteneur a 1 Go c'est la difference
+    // entre un encodage qui aboutit et un processus tue par le noyau.
+    '-threads', '1',
+    '-filter_complex_threads', '1',
+    '-filter_threads', '1',
     // si on transpose nous-memes, on coupe explicitement l autorotation pour
     // ne pas tourner deux fois
     ...(caps.autorotate ? [] : ['-noautorotate']),
@@ -309,7 +324,8 @@ export function buildEncodeArgs({ input, image, output, meta, frames, cover, cap
     '-map', '0:a?',
     '-r', String(fps),
     '-c:v', 'libx264',
-    '-preset', 'faster',
+    '-preset', 'veryfast',
+    '-threads', '2',
     '-crf', '19',
     '-maxrate', maxrate,
     '-bufsize', bufsize,

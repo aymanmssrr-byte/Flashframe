@@ -281,7 +281,8 @@ async function runJob(job) {
         job.outputs.push({ file: out, name: outputName(item.original) });
         emit(job, 'itemDone', { index: i, total, name: item.original, ok: true });
       } catch (err) {
-        app.log.error({ err, file: item.original }, 'echec encodage');
+        app.log.error({ err, file: item.original, killed: err.killed }, 'echec encodage');
+        if (err.killed) job.outOfMemory = true;
         emit(job, 'itemDone', { index: i, total, name: item.original, ok: false });
       }
     }
@@ -308,7 +309,10 @@ async function runJob(job) {
   } catch (err) {
     app.log.error({ err }, 'echec du job');
     job.status = 'error';
-    job.error = 'Aucune video n a pu etre traitee. Formats non supportes ?';
+    job.error = job.outOfMemory
+      ? 'Cette video est trop lourde pour le serveur (souvent une 4K). '
+        + 'Reduis-la en 1080p, ou augmente la memoire du serveur.'
+      : 'Aucune video n a pu etre traitee. Format inhabituel ?';
     emit(job, 'failed', { error: job.error });
   }
 }
