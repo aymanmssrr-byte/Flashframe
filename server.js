@@ -8,7 +8,7 @@ import Fastify from 'fastify';
 import multipart from '@fastify/multipart';
 import archiver from 'archiver';
 
-import { capabilities, encode, probe } from './ffmpeg.js';
+import { FLASH_MS, capabilities, encode, flashFrames, probe } from './ffmpeg.js';
 import {
   MAX_IMAGES,
   MAX_IMAGE_BYTES,
@@ -37,10 +37,9 @@ const MAX_VIDEO_BYTES = Number(process.env.MAX_FILE_BYTES || 500 * 1024 * 1024);
 const MAX_VIDEOS = Number(process.env.MAX_BATCH || 20);
 
 // Reglages figes : l utilisateur n a rien a decider.
-// 4 frames a 30 fps = 133 ms. Assez pour survivre au reencodage d Instagram,
-// trop court pour etre lu consciemment. La frame 0 reste toujours intacte :
-// c est elle qu Instagram utilise comme vignette du Reel.
-const FLASH_FRAMES = Math.min(8, Math.max(3, Number(process.env.FLASH_FRAMES || 4)));
+// Le flash dure FLASH_MS, converti en frames selon la cadence de chaque video.
+// La frame 0 reste toujours intacte : c est elle qu Instagram utilise comme
+// vignette du Reel.
 const FLASH_ON_COVER = false;
 
 // Code d'acces a la bibliotheque d'images. Non defini = tout le monde peut
@@ -59,15 +58,20 @@ await app.register(multipart, {
 
 const INDEX_HTML = await readFile(path.join(__dirname, 'index.html'), 'utf8');
 
-app.get('/', async (req, reply) => {
+function sendPage(reply) {
   reply.header('Content-Type', 'text/html; charset=utf-8');
   reply.header('Cache-Control', 'no-cache');
   return reply.send(INDEX_HTML);
-});
+}
+
+// `/` ne montre qu'une chose : depose ta video. `/admin` est la porte de
+// service, celle ou le proprietaire gere ses visuels.
+app.get('/', async (req, reply) => sendPage(reply));
+app.get('/admin', async (req, reply) => sendPage(reply));
 
 app.get('/api/health', async () => ({
   ok: true,
-  frames: FLASH_FRAMES,
+  flashMs: FLASH_MS,
   adminRequired: Boolean(ADMIN_CODE),
   images: (await listImages()).length,
   caps: await capabilities(),
@@ -243,7 +247,7 @@ app.post('/api/jobs', async (req, reply) => {
 
     process.nextTick(() => runJob(job));
 
-    return { jobId: job.id, count: job.items.length, frames: FLASH_FRAMES };
+    return { jobId: job.id, count: job.items.length };
   } catch (err) {
     await destroyJob(job.id);
     return fail(reply, err, req.log);
@@ -266,7 +270,7 @@ async function runJob(job) {
           image: item.image.file,
           output: out,
           meta: item.meta,
-          frames: FLASH_FRAMES,
+          frames: flashFrames(item.meta),
           cover: FLASH_ON_COVER,
           onProgress: (p) => {
             job.progress = (i + p) / total;
@@ -390,7 +394,7 @@ startSweeper(app.log);
 
 const caps = await capabilities();
 app.log.info(
-  { autorotate: caps.autorotate, zscale: caps.zscale, frames: FLASH_FRAMES, adminCode: Boolean(ADMIN_CODE) },
+  { autorotate: caps.autorotate, zscale: caps.zscale, flashMs: FLASH_MS, adminCode: Boolean(ADMIN_CODE) },
   caps.autorotate
     ? 'ffmpeg applique la rotation au decodage : pas de transpose manuel'
     : 'ffmpeg n applique PAS la rotation : transpose conditionnel actif',

@@ -18,163 +18,148 @@
   body{padding:env(safe-area-inset-top) 0 calc(32px + env(safe-area-inset-bottom));}
   .wrap{max-width:520px;margin:0 auto;padding:0 16px}
 
-  header{padding:26px 0 8px;text-align:center}
-  h1{margin:0;font-size:26px;font-weight:800;letter-spacing:-.02em}
+  header{padding:30px 0 10px;text-align:center}
+  h1{margin:0;font-size:27px;font-weight:800;letter-spacing:-.02em}
   h1 span{background:linear-gradient(90deg,var(--accent),var(--accent2));
     -webkit-background-clip:text;background-clip:text;color:transparent}
+  .tagline{color:var(--dim);font-size:14px;margin-top:6px}
 
-  .tabs{display:flex;gap:6px;background:var(--card);padding:4px;border-radius:14px;margin:18px 0}
-  .tabs button{flex:1;appearance:none;border:0;background:transparent;color:var(--dim);
-    font:700 15px/1 inherit;padding:13px 8px;border-radius:10px;cursor:pointer}
-  .tabs button[aria-selected="true"]{background:var(--card2);color:var(--txt)}
-
-  .big{display:block;position:relative;width:100%;border:0;border-radius:18px;padding:30px 20px;
-    background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;text-align:center;cursor:pointer;
-    font:800 20px/1.25 inherit}
-  .big small{display:block;font:500 14px/1.4 inherit;opacity:.85;margin-top:7px}
+  .big{display:block;position:relative;width:100%;border:0;border-radius:18px;padding:32px 20px;
+    background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;text-align:center;
+    cursor:pointer;font:800 21px/1.25 inherit;margin-top:22px}
+  .big small{display:block;font:500 14px/1.4 inherit;opacity:.85;margin-top:8px}
   .big input{position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer}
   .big.soft{background:var(--card2);border:1px solid var(--line);color:var(--txt)}
 
   .note{color:var(--dim);font-size:14px;text-align:center;margin:16px 4px;line-height:1.5}
-  .note b{color:var(--txt)}
 
-  .panel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;margin-top:16px}
+  .panel{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:18px;margin-top:18px}
   .bar{height:10px;border-radius:999px;background:#ffffff12;overflow:hidden;margin-top:10px}
-  .bar i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .25s}
-  .barlabel{display:flex;justify-content:space-between;font-size:14px;color:var(--dim)}
+  .bar i{display:block;height:100%;width:0;border-radius:999px;
+    background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .25s}
+  .barlabel{display:flex;justify-content:space-between;font-size:14px;color:var(--dim);
+    font-variant-numeric:tabular-nums}
 
-  a.dl{display:block;text-align:center;text-decoration:none;border-radius:18px;padding:22px;
-    background:var(--ok);color:#04120c;font:800 19px/1 inherit}
-  button.again{width:100%;appearance:none;background:transparent;border:1px solid var(--line);color:var(--dim);
-    border-radius:14px;padding:14px;font:600 15px/1 inherit;margin-top:10px;cursor:pointer}
+  a.dl{display:block;text-align:center;text-decoration:none;border-radius:18px;padding:24px;
+    background:var(--ok);color:#04120c;font:800 20px/1 inherit;margin-top:18px}
+  button.again{width:100%;appearance:none;background:transparent;border:1px solid var(--line);
+    color:var(--dim);border-radius:14px;padding:14px;font:600 15px/1 inherit;margin-top:10px;cursor:pointer}
 
   .err{background:#3a1420;border:1px solid #6b2338;color:#ffb3c4;padding:14px;border-radius:12px;
-    font-size:15px;margin-top:16px;text-align:center}
+    font-size:15px;margin-top:18px;text-align:center}
 
-  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:16px}
-  .tile{position:relative;aspect-ratio:1;border-radius:12px;overflow:hidden;background:var(--card2)}
+  .done{text-align:center;font-size:20px;font-weight:700;margin-top:22px}
+
+  .grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:18px}
+  .tile{position:relative;aspect-ratio:9/16;border-radius:12px;overflow:hidden;background:var(--card2)}
   .tile img{width:100%;height:100%;object-fit:cover;display:block}
   .tile button{position:absolute;top:5px;right:5px;width:30px;height:30px;border-radius:50%;border:0;
-    background:#000000b0;color:#fff;font:700 16px/1 inherit;cursor:pointer;backdrop-filter:blur(4px)}
-  .empty{text-align:center;color:var(--dim);padding:34px 10px;font-size:15px;line-height:1.6}
+    background:#000000b8;color:#fff;font:700 17px/1 inherit;cursor:pointer}
+  .empty{text-align:center;color:var(--dim);padding:36px 10px;font-size:15px;line-height:1.6}
 
-  .lockrow{display:flex;gap:8px;margin-top:14px}
+  .lockrow{display:flex;gap:8px;margin-top:16px}
   .lockrow input{flex:1;min-width:0;background:var(--card2);border:1px solid var(--line);
     color:var(--txt);border-radius:14px;padding:16px;font:600 17px/1 inherit;text-align:center;
     letter-spacing:.15em}
-  .lockrow button{flex:none;appearance:none;border:0;border-radius:14px;padding:16px 22px;
+  .lockrow button{flex:none;border:0;border-radius:14px;padding:16px 22px;
     background:linear-gradient(135deg,var(--accent),var(--accent2));color:#fff;
     font:700 16px/1 inherit;cursor:pointer}
 
-  .done{text-align:center;font-size:19px;font-weight:700;margin-bottom:14px}
-  .done small{display:block;font:500 14px/1.5 inherit;color:var(--dim);margin-top:6px}
+  .adminbar{display:flex;justify-content:space-between;align-items:center;gap:10px;
+    background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 14px;
+    margin-top:18px;font-size:13px;color:var(--dim)}
+  .adminbar a{color:var(--accent2);text-decoration:none;font-weight:700}
+
   [hidden]{display:none !important}
-  footer{color:#4e4e63;font-size:12px;text-align:center;padding:26px 10px 0;line-height:1.6}
+  footer{color:#4e4e63;font-size:12px;text-align:center;padding:30px 10px 0;line-height:1.6}
 </style>
 </head>
 <body>
 <div class="wrap">
-  <header><h1>Flash <span>Frame</span></h1></header>
+  <header>
+    <h1>Flash <span>Frame</span></h1>
+    <div class="tagline" id="tagline">Dépose ta vidéo, récupère-la boostée</div>
+  </header>
 
-  <div class="tabs" role="tablist">
-    <button role="tab" id="tab-go" aria-selected="true">Mes vidéos</button>
-    <button role="tab" id="tab-lib" aria-selected="false">Mes images</button>
-  </div>
-
-  <!-- ========== ÉCRAN 1 : traiter des vidéos ========== -->
-  <section id="view-go">
-    <div id="go-empty" hidden>
-      <div class="note">Tu n'as encore aucune image.<br>Ajoutes-en d'abord, elles serviront de flash.</div>
-      <button class="big soft" id="goto-lib">Ajouter mes images</button>
-    </div>
-
-    <div id="go-start">
-      <label class="big" id="pick">
-        Choisir mes vidéos
-        <small>Une image au hasard sur chacune</small>
+  <!-- ================= CÔTÉ UTILISATEUR ================= -->
+  <section id="view-user">
+    <div id="u-start">
+      <label class="big">
+        Choisir ma vidéo
+        <small>Elle ressort prête à poster</small>
         <input type="file" accept="video/*" id="in-videos" multiple>
       </label>
-      <div class="note" id="go-hint"></div>
     </div>
 
-    <div class="panel" id="go-progress" hidden>
-      <div class="barlabel"><span id="go-label">Envoi…</span><span id="go-pct">0 %</span></div>
-      <div class="bar"><i id="go-bar"></i></div>
+    <div class="panel" id="u-run" hidden>
+      <div class="barlabel"><span id="u-label">Envoi…</span><span id="u-pct">0 %</span></div>
+      <div class="bar"><i id="u-bar"></i></div>
       <div class="note" style="margin-bottom:0">Garde cet écran ouvert.</div>
     </div>
 
-    <div id="go-done" hidden>
-      <div class="done" id="done-title"></div>
+    <div id="u-done" hidden>
+      <div class="done">C'est prêt</div>
       <a class="dl" id="dl" download>Télécharger</a>
-      <button class="again" id="again">Recommencer</button>
+      <button class="again" id="again">Une autre vidéo</button>
     </div>
 
-    <div class="err" id="go-err" hidden></div>
+    <div class="err" id="u-err" hidden></div>
   </section>
 
-  <!-- ========== ÉCRAN 2 : la bibliothèque d'images ========== -->
-  <section id="view-lib" hidden>
+  <!-- ================= CÔTÉ PROPRIÉTAIRE ================= -->
+  <section id="view-admin" hidden>
     <div id="lock" hidden>
-      <div class="note">Cet espace est le tien. Entre ton code pour gérer tes images.</div>
+      <div class="note">Entre ton code pour gérer tes images.</div>
       <div class="lockrow">
-        <input type="password" id="code" inputmode="numeric" autocomplete="off" placeholder="Code">
+        <input type="password" id="code" autocomplete="off" placeholder="Code">
         <button id="unlock">Ouvrir</button>
       </div>
       <div class="err" id="lock-err" hidden></div>
     </div>
 
     <div id="libinner" hidden>
-    <label class="big" id="pick-img">
-      Ajouter des images
-      <small>Tu peux en choisir plusieurs d'un coup</small>
-      <input type="file" accept="image/*" id="in-images" multiple>
-    </label>
+      <label class="big">
+        Ajouter des images
+        <small>Tous les formats · plusieurs d'un coup</small>
+        <input type="file" accept="image/*,*/*" id="in-images" multiple>
+      </label>
 
-    <div class="panel" id="lib-progress" hidden>
-      <div class="barlabel"><span>Envoi des images…</span><span id="lib-pct">0 %</span></div>
-      <div class="bar"><i id="lib-bar"></i></div>
-    </div>
+      <div class="panel" id="lib-progress" hidden>
+        <div class="barlabel"><span>Envoi des images…</span><span id="lib-pct">0 %</span></div>
+        <div class="bar"><i id="lib-bar"></i></div>
+      </div>
 
-    <div class="note" id="lib-count"></div>
-    <div class="grid" id="grid"></div>
-    <div class="empty" id="lib-empty" hidden>Aucune image pour l'instant.<br>Ajoute tes visuels, l'app en tirera une au hasard sur chaque vidéo.</div>
-    <div class="err" id="lib-err" hidden></div>
+      <div class="note" id="lib-count"></div>
+      <div class="grid" id="grid"></div>
+      <div class="empty" id="lib-empty" hidden>Aucune image pour l'instant.<br>
+        Les vignettes montrent le recadrage 9:16 qui sera appliqué.</div>
+      <div class="err" id="lib-err" hidden></div>
+
+      <div class="adminbar">
+        <span>Page publique</span>
+        <a href="/">Voir ce que voient les autres →</a>
+      </div>
     </div>
   </section>
 
-  <footer>Le flash dure 4 images, invisible à l'œil mais pas au cerveau.<br>
-    Tes vidéos sont effacées du serveur après le téléchargement.</footer>
+  <footer id="foot"></footer>
 </div>
 
 <script>
 'use strict';
 const $ = (id) => document.getElementById(id);
+const IS_ADMIN = location.pathname.replace(/\/+$/, '').endsWith('/admin');
+
 let library = [];
 let adminRequired = false;
 let adminCode = '';
 try { adminCode = localStorage.getItem('ff.code') || ''; } catch(_) {}
 
-function adminHeaders(){
-  return adminCode ? { 'x-admin-code': adminCode } : {};
-}
+const adminHeaders = () => (adminCode ? { 'x-admin-code': adminCode } : {});
 function lockedView(locked){
   $('lock').hidden = !locked;
   $('libinner').hidden = locked;
 }
-
-/* ---------- navigation ---------- */
-function showTab(name){
-  $('view-go').hidden = name !== 'go';
-  $('view-lib').hidden = name !== 'lib';
-  $('tab-go').setAttribute('aria-selected', String(name === 'go'));
-  $('tab-lib').setAttribute('aria-selected', String(name === 'lib'));
-  window.scrollTo(0,0);
-}
-$('tab-go').onclick = () => showTab('go');
-$('tab-lib').onclick = () => showTab('lib');
-$('goto-lib').onclick = () => showTab('lib');
-
-/* ---------- utilitaires ---------- */
 function setBar(barId, pctId, p){
   $(barId).style.width = Math.round(p*100)+'%';
   $(pctId).textContent = Math.round(p*100)+' %';
@@ -211,165 +196,163 @@ function listen(url, handlers){
   return es;
 }
 
-/* ---------- bibliothèque ---------- */
-async function loadLibrary(){
-  try {
-    const r = await fetch('/api/library');
-    const body = await r.json();
-    library = body.images || [];
-  } catch(_) {
-    library = [];
-  }
-  renderLibrary();
-}
-
-function renderLibrary(){
-  const n = library.length;
-  $('grid').innerHTML = library.map((img) =>
-    '<div class="tile"><img src="'+img.url+'" alt=""><button data-id="'+img.id+'" aria-label="Supprimer">×</button></div>'
-  ).join('');
-  $('lib-empty').hidden = n > 0;
-  $('lib-count').textContent = n
-    ? n + (n > 1 ? ' images · une au hasard sur chaque vidéo' : ' image · utilisée sur chaque vidéo')
-    : '';
-
-  // l'écran 1 s'adapte : pas d'images, pas de bouton vidéos
-  $('go-empty').hidden = n > 0;
-  $('go-start').hidden = n === 0;
-  $('go-hint').textContent = n
-    ? (n > 1 ? n+' images dans ta bibliothèque' : '1 image dans ta bibliothèque')
-    : '';
-}
-
-$('unlock').onclick = async () => {
-  const value = $('code').value.trim();
-  if (!value) return;
-  $('lock-err').hidden = true;
-  try {
-    const r = await fetch('/api/admin/check', { method: 'POST', headers: { 'x-admin-code': value } });
-    if (!r.ok) throw new Error('Code incorrect');
-    adminCode = value;
-    try { localStorage.setItem('ff.code', value); } catch(_) {}
-    lockedView(false);
-    (async function boot(){
-  try {
-    const h = await (await fetch('/api/health')).json();
-    adminRequired = Boolean(h.adminRequired);
-  } catch(_) {}
-  if (adminRequired && !adminCode) lockedView(true);
-  else lockedView(false);
-  loadLibrary();
-})();
-  } catch (err) {
-    $('lock-err').textContent = 'Code incorrect.';
-    $('lock-err').hidden = false;
-  }
-};
-$('code').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('unlock').click(); });
-
-$('grid').addEventListener('click', async (e) => {
-  const btn = e.target.closest('button[data-id]');
-  if (!btn) return;
-  btn.disabled = true;
-  try {
-    const r = await fetch('/api/library/'+btn.dataset.id, { method: 'DELETE', headers: adminHeaders() });
-    if (!r.ok) throw new Error('Suppression impossible');
-    library = library.filter((i) => i.id !== btn.dataset.id);
-    renderLibrary();
-  } catch (err) {
-    showErr('lib-err', err.message);
-    btn.disabled = false;
-  }
-});
-
-$('in-images').addEventListener('change', async (e) => {
-  const files = Array.from(e.target.files || []);
-  e.target.value = '';
-  if (!files.length) return;
-  showErr('lib-err','');
-  $('lib-progress').hidden = false;
-  setBar('lib-bar','lib-pct',0);
-  const form = new FormData();
-  files.forEach((f) => form.append('images', f));
-  try {
-    const res = await upload('/api/library', form, (p) => setBar('lib-bar','lib-pct',p), adminHeaders());
-    library = res.images || [];
-    renderLibrary();
-    if (res.rejected && res.rejected.length) {
-      showErr('lib-err', res.rejected.length+' fichier(s) ignoré(s) : format non reconnu ou trop lourd.');
-    }
-  } catch (err) {
-    showErr('lib-err', err.message);
-  } finally {
-    $('lib-progress').hidden = true;
-  }
-});
-
-/* ---------- traitement des vidéos ---------- */
+/* ---------- côté utilisateur : une vidéo, rien d'autre ---------- */
 $('in-videos').addEventListener('change', async (e) => {
   const files = Array.from(e.target.files || []);
   e.target.value = '';
   if (!files.length) return;
 
-  showErr('go-err','');
-  $('go-start').hidden = true;
-  $('go-done').hidden = true;
-  $('go-progress').hidden = false;
-  $('go-label').textContent = 'Envoi…';
-  setBar('go-bar','go-pct',0);
+  showErr('u-err','');
+  $('u-start').hidden = true;
+  $('u-done').hidden = true;
+  $('u-run').hidden = false;
+  $('u-label').textContent = 'Envoi…';
+  setBar('u-bar','u-pct',0);
 
   const form = new FormData();
   files.forEach((f) => form.append('videos', f));
 
   try {
-    const res = await upload('/api/jobs', form, (p) => setBar('go-bar','go-pct', p * 0.35));
-    $('go-label').textContent = 'Traitement…';
+    const res = await upload('/api/jobs', form, (p) => setBar('u-bar','u-pct', p * 0.35));
+    $('u-label').textContent = 'Traitement…';
 
     listen('/api/progress/'+res.jobId, {
       item: (d) => {
-        $('go-label').textContent = d.total > 1
+        $('u-label').textContent = d.total > 1
           ? 'Vidéo '+(d.index+1)+' sur '+d.total
           : 'Traitement…';
       },
-      progress: (d) => setBar('go-bar','go-pct', 0.35 + d.progress * 0.65),
+      progress: (d) => setBar('u-bar','u-pct', 0.35 + d.progress * 0.65),
       done: (d) => {
-        setBar('go-bar','go-pct',1);
-        $('go-progress').hidden = true;
+        setBar('u-bar','u-pct',1);
+        $('u-run').hidden = true;
         $('dl').href = d.url;
         $('dl').setAttribute('download', d.name);
-        $('dl').textContent = d.total > 1 ? 'Télécharger les '+(d.total - d.failed)+' vidéos' : 'Télécharger';
-        $('done-title').innerHTML = d.failed
-          ? 'C\'est prêt<small>'+d.failed+' vidéo(s) n\'ont pas pu être traitées</small>'
-          : 'C\'est prêt';
-        $('go-done').hidden = false;
+        $('dl').textContent = d.total > 1
+          ? 'Télécharger les '+(d.total - d.failed)+' vidéos'
+          : 'Télécharger';
+        $('u-done').hidden = false;
       },
       failed: (d) => {
-        $('go-progress').hidden = true;
-        $('go-start').hidden = false;
-        showErr('go-err', d.error || 'Traitement impossible');
+        $('u-run').hidden = true;
+        $('u-start').hidden = false;
+        showErr('u-err', d.error || 'Traitement impossible');
       }
     });
   } catch (err) {
-    $('go-progress').hidden = true;
-    $('go-start').hidden = false;
-    showErr('go-err', err.message);
+    $('u-run').hidden = true;
+    $('u-start').hidden = false;
+    showErr('u-err', err.message);
   }
 });
 
 $('again').onclick = () => {
-  $('go-done').hidden = true;
-  $('go-start').hidden = false;
-  showErr('go-err','');
+  $('u-done').hidden = true;
+  $('u-start').hidden = false;
+  showErr('u-err','');
 };
 
-(async function boot(){
+/* ---------- côté propriétaire ---------- */
+async function loadLibrary(){
   try {
-    const h = await (await fetch('/api/health')).json();
-    adminRequired = Boolean(h.adminRequired);
-  } catch(_) {}
-  if (adminRequired && !adminCode) lockedView(true);
-  else lockedView(false);
-  loadLibrary();
+    const body = await (await fetch('/api/library')).json();
+    library = body.images || [];
+  } catch(_) { library = []; }
+  renderLibrary();
+}
+
+function renderLibrary(){
+  const n = library.length;
+  $('grid').innerHTML = library.map((img, i) =>
+    '<div class="tile"><img src="'+img.url+'" alt="visuel '+(i+1)+'">'
+    + '<button data-id="'+img.id+'" aria-label="Supprimer">×</button></div>'
+  ).join('');
+  $('grid').hidden = n === 0;
+  $('lib-empty').hidden = n > 0;
+  $('lib-count').textContent = n
+    ? n + (n > 1 ? ' images · une au hasard sur chaque vidéo' : ' image · utilisée sur chaque vidéo')
+    : '';
+}
+
+if (IS_ADMIN) {
+  $('grid').addEventListener('click', async (e) => {
+    const btn = e.target.closest('button[data-id]');
+    if (!btn) return;
+    btn.disabled = true;
+    try {
+      const r = await fetch('/api/library/'+btn.dataset.id, { method: 'DELETE', headers: adminHeaders() });
+      if (!r.ok) throw new Error('Suppression impossible');
+      library = library.filter((i) => i.id !== btn.dataset.id);
+      renderLibrary();
+    } catch (err) {
+      showErr('lib-err', err.message);
+      btn.disabled = false;
+    }
+  });
+
+  $('unlock').onclick = async () => {
+    const value = $('code').value.trim();
+    if (!value) return;
+    showErr('lock-err','');
+    try {
+      const r = await fetch('/api/admin/check', { method: 'POST', headers: { 'x-admin-code': value } });
+      if (!r.ok) throw new Error('Code incorrect');
+      adminCode = value;
+      try { localStorage.setItem('ff.code', value); } catch(_) {}
+      lockedView(false);
+      loadLibrary();
+    } catch (_) {
+      showErr('lock-err', 'Code incorrect.');
+    }
+  };
+  $('code').addEventListener('keydown', (e) => { if (e.key === 'Enter') $('unlock').click(); });
+
+  $('in-images').addEventListener('change', async (e) => {
+    const files = Array.from(e.target.files || []);
+    e.target.value = '';
+    if (!files.length) return;
+    showErr('lib-err','');
+    $('lib-progress').hidden = false;
+    setBar('lib-bar','lib-pct',0);
+    const form = new FormData();
+    files.forEach((f) => form.append('images', f));
+    try {
+      const res = await upload('/api/library', form,
+        (p) => setBar('lib-bar','lib-pct',p), adminHeaders());
+      library = res.images || [];
+      renderLibrary();
+      if (res.rejected && res.rejected.length) {
+        showErr('lib-err', res.rejected.length+' fichier(s) illisible(s), ignoré(s).');
+      }
+    } catch (err) {
+      showErr('lib-err', err.message);
+    } finally {
+      $('lib-progress').hidden = true;
+    }
+  });
+}
+
+/* ---------- démarrage ---------- */
+(async function boot(){
+  let health = {};
+  try { health = await (await fetch('/api/health')).json(); } catch(_) {}
+  adminRequired = Boolean(health.adminRequired);
+
+  $('view-user').hidden = IS_ADMIN;
+  $('view-admin').hidden = !IS_ADMIN;
+
+  if (IS_ADMIN) {
+    $('tagline').textContent = 'Ta bibliothèque d\'images';
+    $('foot').textContent = "Ces images sont piochées au hasard sur chaque vidéo déposée. "
+      + "Elles restent stockées tant que tu ne les supprimes pas.";
+    lockedView(adminRequired && !adminCode);
+    if (!adminRequired || adminCode) loadLibrary();
+  } else {
+    const ms = health.flashMs || 133;
+    $('foot').textContent = "Une image est glissée sur les premières images de ta vidéo, "
+      + "pendant " + ms + " millisecondes. Invisible à l'œil, pas au cerveau. "
+      + "Ta vidéo est effacée du serveur après le téléchargement.";
+  }
 })();
 </script>
 </body>

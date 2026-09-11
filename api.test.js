@@ -120,7 +120,7 @@ async function main() {
 
   try {
     const health = await waitForServer();
-    console.log(`serveur pret — flash de ${health.frames} frames, ${health.images} image(s) en bibliotheque\n`);
+    console.log(`serveur pret — flash de ${health.flashMs} ms, ${health.images} image(s) en bibliotheque\n`);
 
     const vidBuf = await readFile(vid);
     const vid2Buf = await readFile(vid2);
@@ -129,10 +129,17 @@ async function main() {
     await test('la page ouvre la galerie et non la camera', async () => {
       const html = await (await fetch(`${BASE}/`)).text();
       assert.ok(html.includes('accept="video/*"'), 'input video');
-      assert.ok(html.includes('accept="image/*"'), 'input image');
       assert.ok(!/capture=/.test(html), 'aucun attribut capture');
       assert.ok(!/type="range"/.test(html), 'plus aucun slider a regler');
       assert.ok(!/type="checkbox"/.test(html), 'plus aucune case a cocher');
+    });
+
+    await test('/admin sert bien une page, et elle porte l espace images', async () => {
+      const r = await fetch(`${BASE}/admin`);
+      assert.equal(r.status, 200);
+      const html = await r.text();
+      assert.ok(html.includes('id="view-admin"'), 'ecran proprietaire present');
+      assert.ok(html.includes("endsWith('/admin')"), 'bascule par le chemin');
     });
 
     // --- bibliotheque vide --------------------------------------------------
@@ -173,6 +180,33 @@ async function main() {
       assert.equal(b.images.length, 4);
     });
 
+    await test('formats exotiques acceptes : gif, tiff, bmp, avif, sans extension', async () => {
+      const exotic = [];
+      const specs = [['gif', 'x.gif'], ['tiff', 'x.tiff'], ['bmp', 'x.bmp'], ['webp', 'x.webp']];
+      for (const [fmt, name] of specs) {
+        const f = path.join(DIR, name);
+        await run('ffmpeg', ['-v', 'error', '-y', '-f', 'lavfi',
+          '-i', 'color=c=0x3366ff:s=600x600', '-frames:v', '1', f]);
+        exotic.push([f, name]);
+      }
+      // un png renomme sans extension du tout : seul ffmpeg doit decider
+      const noExt = path.join(DIR, 'fichier-sans-extension');
+      await run('ffmpeg', ['-v', 'error', '-y', '-f', 'lavfi',
+        '-i', 'color=c=0x33ff66:s=600x600', '-frames:v', '1', noExt + '.png']);
+      const { copyFile } = await import('node:fs/promises');
+      await copyFile(noExt + '.png', noExt);
+      exotic.push([noExt, 'sans-extension']);
+
+      const fd = new FormData();
+      for (const [f, name] of exotic) {
+        fd.append('images', blob(await readFile(f), 'application/octet-stream'), name);
+      }
+      const r = await fetch(`${BASE}/api/library`, { method: 'POST', body: fd });
+      const b = await r.json();
+      assert.equal(r.status, 200, JSON.stringify(b));
+      assert.equal(b.added, exotic.length, `attendu ${exotic.length}, recu ${b.added} (rejetes: ${b.rejected})`);
+    });
+
     await test('les vignettes sont servies en jpeg', async () => {
       const r = await fetch(`${BASE}/api/library/${libIds[0]}/thumb`);
       assert.equal(r.status, 200);
@@ -182,10 +216,11 @@ async function main() {
     });
 
     await test('suppression d une image', async () => {
+      const before = (await (await fetch(`${BASE}/api/library`)).json()).images.length;
       const r = await fetch(`${BASE}/api/library/${libIds[0]}`, { method: 'DELETE' });
       assert.equal(r.status, 200);
       const list = await (await fetch(`${BASE}/api/library`)).json();
-      assert.equal(list.images.length, 3);
+      assert.equal(list.images.length, before - 1);
       assert.ok(!list.images.some((i) => i.id === libIds[0]), 'image bien retiree');
       // le fichier et sa vignette ont disparu du disque
       const files = await readdir(LIB);

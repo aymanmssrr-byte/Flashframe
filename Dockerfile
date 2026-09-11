@@ -9,7 +9,9 @@ ENV NODE_ENV=production \
     WORK_DIR=/tmp/flashframe \
     LIBRARY_DIR=/data/library
 
-# /data doit etre un volume : c'est la seule chose a garder entre deux deploiements
+# /data recoit un volume monte par la plateforme : c'est la seule chose a
+# garder entre deux deploiements. Pas d'instruction VOLUME ici, Railway la
+# refuse et gere le montage de son cote.
 RUN mkdir -p /data/library
 
 WORKDIR /app

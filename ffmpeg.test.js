@@ -14,7 +14,7 @@ import { mkdir, rm } from 'node:fs/promises';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-import { capabilities, encode, enableExpr, probe, run } from './ffmpeg.js';
+import { capabilities, encode, enableExpr, flashFrames, probe, run, targetFps } from './ffmpeg.js';
 
 const DIR = path.join(path.dirname(fileURLToPath(import.meta.url)), '.tmp');
 const RED = [237, 28, 36];
@@ -147,6 +147,33 @@ async function main() {
     assert.ok(near(f[6], BLUE), 'frame 6 propre');
     const om = await probe(out);
     assert.ok(Math.abs(om.fps - 30) < 0.5, `sortie a ${om.fps} fps`);
+  });
+
+  // --- 3 bis. cadence adaptative --------------------------------------------
+  await test('source 60 fps : sortie en 60 fps, flash de meme duree', async () => {
+    const s60 = path.join(DIR, 'src60.mp4');
+    await makeVideo(s60, { fps: 60, dur: 2 });
+    const m = await probe(s60);
+    assert.equal(targetFps(m), 60, 'cadence cible');
+    assert.equal(flashFrames(m), 8, '8 frames a 60 fps = 133 ms');
+
+    const out = path.join(DIR, 'out60.mp4');
+    await encode({ input: s60, image: img, output: out, meta: m, frames: flashFrames(m), cover: false });
+    const om = await probe(out);
+    assert.ok(Math.abs(om.fps - 60) < 1, `sortie a ${om.fps} fps`);
+
+    const f = await sampleFrames(out, 12);
+    assert.ok(near(f[0], BLUE), 'frame 0 intacte');
+    for (let i = 1; i <= 8; i += 1) assert.ok(near(f[i], RED), `frame ${i} flashee`);
+    assert.ok(near(f[9], BLUE), 'frame 9 propre');
+  });
+
+  await test('source 30 fps : 4 frames, soit la meme duree qu en 60', async () => {
+    const m = await probe(src);
+    assert.equal(targetFps(m), 30);
+    assert.equal(flashFrames(m), 4);
+    const ms30 = (flashFrames(m) / targetFps(m)) * 1000;
+    assert.ok(Math.abs(ms30 - 133) < 10, `${ms30} ms au lieu de ~133`);
   });
 
   // --- 4. portrait iPhone : paysage + matrice de rotation ------------------

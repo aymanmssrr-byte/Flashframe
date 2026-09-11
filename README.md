@@ -12,13 +12,14 @@ Le spectateur ne voit pas l'image consciemment, mais il sent que quelque chose
 est passé et rembobine. Le replay rate est un des signaux les plus lourds de
 l'algo Reels.
 
-## Comment on s'en sert
+## Deux pages, deux publics
 
-1. Onglet **Mes images** → « Ajouter des images ». Tes visuels restent là
-   définitivement, tu peux en ajouter ou en supprimer quand tu veux.
-2. Onglet **Mes vidéos** → « Choisir mes vidéos ». Tu peux en sélectionner
-   plusieurs d'un coup.
-3. Tu attends la barre, tu télécharges.
+**`/` — ce que voit l'utilisateur.** Un bouton : choisir sa vidéo. Elle ressort
+avec le flash dedans. Aucun onglet, aucune image à fournir, aucun réglage. Il ne
+sait même pas qu'une bibliothèque existe.
+
+**`/admin` — ta porte de service.** Protégée par `ADMIN_CODE`. Tu y déposes tes
+visuels, tu les vois en grille, tu en supprimes. C'est tout.
 
 Une seule vidéo → un `.mp4`. Plusieurs → un `.zip` avec les noms d'origine.
 
@@ -73,31 +74,29 @@ Variables d'environnement, toutes optionnelles :
 | `LIBRARY_DIR`     | `/data/library`    | où vivent les images flash               |
 | `WORK_DIR`        | `/tmp/flashframe`  | fichiers temporaires des vidéos          |
 | `ADMIN_CODE`      | *(vide)*           | code d'accès à l'onglet « Mes images »   |
-| `FLASH_FRAMES`    | `4`                | durée du flash, borné entre 3 et 8       |
+| `FLASH_MS`        | `133`              | durée du flash en millisecondes          |
 | `MAX_IMAGES`      | `500`              | taille max de la bibliothèque            |
+| `MAX_IMAGE_BYTES` | `104857600`        | 100 Mo par image                         |
 | `MAX_BATCH`       | `20`               | vidéos par envoi                         |
 | `MAX_FILE_BYTES`  | `524288000`        | 500 Mo par vidéo                         |
 | `JOB_TTL_MS`      | `3600000`          | durée de vie d'un job (1 h)              |
 
-## Qui fait quoi
+## Le code d'accès
 
-Deux rôles, un seul écran chacun.
+Sans `ADMIN_CODE`, `/admin` est ouvert à quiconque connaît l'adresse.
+Définis-le avant de partager le lien public.
 
-**Toi** : onglet « Mes images ». Tu déposes tes visuels une fois, ils restent.
-Si la variable `ADMIN_CODE` est définie, cet onglet demande ce code avant de
-laisser ajouter ou supprimer quoi que ce soit.
+Le code protège la bibliothèque, pas l'usage : n'importe qui avec l'URL peut
+faire tourner des encodages sur le serveur. Pour vendre l'app à des clients, il
+faudra de vrais comptes séparés — chacun avec sa propre bibliothèque. C'est le
+prochain vrai chantier.
 
-**Celui qui utilise l'app** : onglet « Mes vidéos ». Il dépose une vidéo, c'est
-tout. Il ne choisit aucune image, il n'en ajoute aucune — l'app pioche dans ta
-bibliothèque toute seule.
+## Les formats d'image acceptés
 
-Sans `ADMIN_CODE`, l'onglet images est ouvert à quiconque a l'URL. Définis-le
-avant de partager le lien.
-
-Attention : le code protège la bibliothèque, pas l'usage. N'importe qui avec
-l'URL peut faire tourner des encodages sur ton serveur. Pour vendre l'app à
-des clients, il faudra de vrais comptes séparés — chacun avec sa propre
-bibliothèque. C'est le prochain vrai chantier.
+Aucune liste blanche. Le seul juge est ffmpeg : s'il sait ouvrir le fichier,
+l'image entre. JPEG, PNG, WebP, HEIC, AVIF, GIF, TIFF, BMP, un fichier sans
+extension du tout — tout passe, et tout est converti en JPEG de haute qualité au
+stockage. Un fichier illisible est ignoré sans faire échouer l'envoi des autres.
 
 ## Ce que fait le traitement
 
@@ -125,12 +124,21 @@ feed et sur le profil — un flash dessus donnerait une couverture illisible.
 Le `fps=30` est placé **avant** l'overlay pour que `n` soit l'index de la frame
 de sortie. Sans ça, une source en 24 ou 60 fps décalerait le flash.
 
-### Pourquoi 4 frames et pas 1
+### Le flash dure une durée, pas un nombre de frames
 
 Instagram réencode tout à l'upload. Une frame isolée est traitée comme du bruit
-et lissée : le flash disparaît. 4 frames à 30 fps font 133 ms — assez pour
-survivre au réencodage, trop court pour être lu consciemment. La valeur est
-figée dans le code (`FLASH_FRAMES`), il n'y a rien à régler dans l'interface.
+et lissée : le flash disparaît. La cible est 133 ms — assez pour survivre au
+réencodage, trop court pour être lu consciemment.
+
+Ce sont donc 4 frames sur une vidéo en 30 fps, et 8 sur une vidéo en 60 fps.
+Le nombre est recalculé par vidéo, avec un plancher à 3 frames.
+
+### La cadence de la source est préservée
+
+Ramener une vidéo filmée en 60 fps à 30 fps se voit immédiatement sur les
+mouvements rapides. La sortie reste donc en 60 fps quand la source y est, et en
+30 fps sinon. Le débit suit : 12 Mb/s en 60 fps, 8 Mb/s en 30 fps, CRF 19,
+redimensionnement en lanczos.
 
 ### Vidéos portrait iPhone
 
@@ -160,8 +168,10 @@ exactement 2 fois.
 
 | Route                          | Rôle                                             |
 |--------------------------------|--------------------------------------------------|
-| `GET /`                        | la page                                          |
-| `GET /api/health`              | état, nombre d'images, capacités ffmpeg          |
+| `GET /`                        | la page publique : dépose une vidéo              |
+| `GET /admin`                   | la page propriétaire : la bibliothèque           |
+| `GET /api/health`              | état, durée du flash, capacités ffmpeg           |
+| `POST /api/admin/check`        | vérifie le code d'accès                          |
 | `GET /api/library`             | la liste des images                              |
 | `POST /api/library`            | multipart `images` → ajoute à la bibliothèque    |
 | `GET /api/library/:id/thumb`   | la vignette                                      |

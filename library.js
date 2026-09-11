@@ -14,10 +14,17 @@ import { probe, run } from './ffmpeg.js';
 const DEFAULT_DIR = process.env.LIBRARY_DIR || '/data/library';
 const FALLBACK_DIR = path.join(process.cwd(), 'data', 'library');
 
-export const MAX_IMAGE_BYTES = Number(process.env.MAX_IMAGE_BYTES || 25 * 1024 * 1024);
+export const MAX_IMAGE_BYTES = Number(process.env.MAX_IMAGE_BYTES || 100 * 1024 * 1024);
 export const MAX_IMAGES = Number(process.env.MAX_IMAGES || 500);
 
-const ALLOWED_EXT = new Set(['.jpg', '.jpeg', '.png', '.webp', '.heic', '.heif', '.bmp']);
+// Aucune liste de formats autorises : si ffmpeg sait lire le fichier, c'est une
+// image valable. Tout est converti en jpeg de haute qualite au stockage, donc
+// le format d'origine n'a aucune importance.
+const READABLE_EXT = new Set([
+  '.jpg', '.jpeg', '.png', '.webp', '.heic', '.heif', '.bmp',
+  '.avif', '.gif', '.tif', '.tiff', '.jfif', '.jpe', '.dng', '.ppm', '.pgm', '.tga',
+]);
+const STORED_EXT = '.jpg';
 
 let dir = null;
 
@@ -75,7 +82,7 @@ export async function listImages() {
     if (name.includes('.thumb.')) continue;
     const ext = path.extname(name).toLowerCase();
     const id = name.slice(0, -ext.length);
-    if (!isId(id) || !ALLOWED_EXT.has(ext)) continue;
+    if (!isId(id) || !READABLE_EXT.has(ext)) continue;
     const st = await stat(path.join(libraryDir(), name)).catch(() => null);
     if (!st) continue;
     out.push({ id, ext, file: path.join(libraryDir(), name), addedAt: st.mtimeMs });
@@ -95,8 +102,7 @@ export async function findImage(id) {
  * Verifie que ffmpeg sait la lire, puis fabrique la vignette.
  */
 export async function addImage(tmpFile, originalName) {
-  let ext = path.extname(String(originalName || '')).toLowerCase();
-  if (!ALLOWED_EXT.has(ext)) ext = '.jpg';
+  void originalName; // le nom d'origine ne decide de rien : seul ffmpeg juge
 
   const meta = await probe(tmpFile).catch(() => null);
   if (!meta || !meta.width || !meta.height) {
@@ -109,22 +115,21 @@ export async function addImage(tmpFile, originalName) {
   }
 
   const id = randomUUID();
-  const dest = imagePath(id, ext);
-  const { rename, copyFile } = await import('node:fs/promises');
-  try {
-    await rename(tmpFile, dest);
-  } catch {
-    // tmp et bibliotheque peuvent etre sur deux systemes de fichiers
-    await copyFile(tmpFile, dest);
-    await rm(tmpFile, { force: true });
-  }
+  const dest = imagePath(id, STORED_EXT);
 
-  // vignette carree pour la grille
+  // conversion vers un jpeg de haute qualite, au moins aussi grand que le cadre
+  // Reels : n'importe quel format lisible par ffmpeg entre, un seul format sort
+  await run('ffmpeg', ['-v', 'error', '-y', '-i', tmpFile,
+    '-vf', "scale='max(1080,iw)':'-2':flags=lanczos",
+    '-frames:v', '1', '-q:v', '2', dest], { timeoutMs: 120000 });
+  await rm(tmpFile, { force: true }).catch(() => {});
+
+  // vignette verticale : elle montre le recadrage 9:16 reel
   await run('ffmpeg', ['-v', 'error', '-y', '-i', dest,
-    '-vf', 'scale=400:400:force_original_aspect_ratio=increase,crop=400:400',
+    '-vf', 'scale=270:480:force_original_aspect_ratio=increase,crop=270:480',
     '-frames:v', '1', '-q:v', '4', thumbPath(id)]).catch(() => {});
 
-  return { id, ext, width: meta.width, height: meta.height };
+  return { id, ext: STORED_EXT, width: meta.width, height: meta.height };
 }
 
 export async function deleteImage(id) {

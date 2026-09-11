@@ -5,7 +5,24 @@ import path from 'node:path';
 
 export const OUT_W = 1080;
 export const OUT_H = 1920;
-export const OUT_FPS = 30;
+
+// Duree visee du flash. On compte en frames pour ffmpeg, mais la cible est une
+// duree : 133 ms survit au reencodage d'Instagram sans etre lisible a l'oeil.
+export const FLASH_MS = Number(process.env.FLASH_MS || 133);
+
+/**
+ * Cadence de sortie. Une source filmee en 60 fps perd visiblement en fluidite
+ * si on la ramene a 30 : on garde donc 60 quand elle y est, 30 sinon.
+ */
+export function targetFps(meta) {
+  return (meta && meta.fps > 45) ? 60 : 30;
+}
+
+/** Nombre de frames de flash pour tenir FLASH_MS a cette cadence, 3 minimum */
+export function flashFrames(meta) {
+  const fps = targetFps(meta);
+  return Math.max(3, Math.round((FLASH_MS * fps) / 1000));
+}
 
 const FFMPEG = process.env.FFMPEG_PATH || 'ffmpeg';
 const FFPROBE = process.env.FFPROBE_PATH || 'ffprobe';
@@ -212,7 +229,7 @@ export async function probe(file, { skipRotationNormalisation = false } = {}) {
 // construction du filtre
 // ---------------------------------------------------------------------------
 
-const FIT = `scale=${OUT_W}:${OUT_H}:force_original_aspect_ratio=increase,crop=${OUT_W}:${OUT_H},setsar=1`;
+const FIT = `scale=${OUT_W}:${OUT_H}:force_original_aspect_ratio=increase:flags=lanczos,crop=${OUT_W}:${OUT_H},setsar=1`;
 
 /**
  * `rotation` est l angle horaire a appliquer pour l affichage (convention du
@@ -253,7 +270,7 @@ export function enableExpr(frames, cover) {
 }
 
 export function buildFilterComplex({ meta, frames, cover, caps }) {
-  const parts = [`fps=${OUT_FPS}`];
+  const parts = [`fps=${targetFps(meta)}`];
 
   // ffmpeg applique deja la rotation au decodage dans la quasi-totalite des
   // builds ; on ne transpose que si la detection au boot dit le contraire.
@@ -273,6 +290,11 @@ export function buildFilterComplex({ meta, frames, cover, caps }) {
 }
 
 export function buildEncodeArgs({ input, image, output, meta, frames, cover, caps }) {
+  const fps = targetFps(meta);
+  // marge de debit large : Instagram reencode par-dessus, mieux vaut lui donner
+  // une source propre plutot qu'une source deja compressee deux fois
+  const maxrate = fps >= 60 ? '12M' : '8M';
+  const bufsize = fps >= 60 ? '24M' : '16M';
   return [
     '-hide_banner',
     '-nostdin',
@@ -285,16 +307,17 @@ export function buildEncodeArgs({ input, image, output, meta, frames, cover, cap
     '-filter_complex', buildFilterComplex({ meta, frames, cover, caps }),
     '-map', '[v]',
     '-map', '0:a?',
-    '-r', String(OUT_FPS),
+    '-r', String(fps),
     '-c:v', 'libx264',
-    '-preset', 'veryfast',
-    '-crf', '20',
-    '-maxrate', '5M',
-    '-bufsize', '10M',
+    '-preset', 'faster',
+    '-crf', '19',
+    '-maxrate', maxrate,
+    '-bufsize', bufsize,
     '-pix_fmt', 'yuv420p',
     '-profile:v', 'high',
+    '-level', '4.2',
     '-c:a', 'aac',
-    '-b:a', '128k',
+    '-b:a', '192k',
     '-ar', '44100',
     '-ac', '2',
     '-movflags', '+faststart',
@@ -312,7 +335,7 @@ export async function encode({ input, image, output, meta, frames, cover, onProg
   const caps = capsOverride || (await capabilities());
   const args = buildEncodeArgs({ input, image, output, meta, frames, cover, caps });
 
-  const totalFrames = Math.max(1, Math.round((meta.duration || 0) * OUT_FPS));
+  const totalFrames = Math.max(1, Math.round((meta.duration || 0) * targetFps(meta)));
   let last = -1;
 
   const { child, done } = spawnFfmpeg(args, {
