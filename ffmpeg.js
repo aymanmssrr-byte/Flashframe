@@ -7,13 +7,12 @@ export const OUT_W = 1080;
 export const OUT_H = 1920;
 
 // Duree du flash. On compte en frames pour ffmpeg, mais la cible est une duree.
-export const FLASH_MS = Number(process.env.FLASH_MS || 266);
+export const FLASH_MS = Number(process.env.FLASH_MS || 133);
 
-// Moment ou le flash apparait, depuis le debut de la video. Au tout debut, le
-// spectateur n'a pas encore les yeux sur l'image : le flash passe dans le vide.
-// Quelques secondes plus tard il est installe, et c'est la que l'interruption
-// se remarque assez pour declencher un retour en arriere.
-export const FLASH_AT_MS = Number(process.env.FLASH_AT_MS || 3000);
+// Moment ou le flash apparait, depuis le debut de la video. Assez tard pour que
+// le spectateur ait pose les yeux sur l'image, assez tot pour qu'il n'ait pas
+// encore decide de passer au Reel suivant.
+export const FLASH_AT_MS = Number(process.env.FLASH_AT_MS || 1000);
 
 /**
  * Cadence de sortie. Une source filmee en 60 fps perd visiblement en fluidite
