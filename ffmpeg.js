@@ -6,9 +6,14 @@ import path from 'node:path';
 export const OUT_W = 1080;
 export const OUT_H = 1920;
 
-// Duree visee du flash. On compte en frames pour ffmpeg, mais la cible est une
-// duree : 133 ms survit au reencodage d'Instagram sans etre lisible a l'oeil.
-export const FLASH_MS = Number(process.env.FLASH_MS || 133);
+// Duree du flash. On compte en frames pour ffmpeg, mais la cible est une duree.
+export const FLASH_MS = Number(process.env.FLASH_MS || 266);
+
+// Moment ou le flash apparait, depuis le debut de la video. Au tout debut, le
+// spectateur n'a pas encore les yeux sur l'image : le flash passe dans le vide.
+// Quelques secondes plus tard il est installe, et c'est la que l'interruption
+// se remarque assez pour declencher un retour en arriere.
+export const FLASH_AT_MS = Number(process.env.FLASH_AT_MS || 3000);
 
 /**
  * Cadence de sortie. Une source filmee en 60 fps perd visiblement en fluidite
@@ -22,6 +27,24 @@ export function targetFps(meta) {
 export function flashFrames(meta) {
   const fps = targetFps(meta);
   return Math.max(3, Math.round((FLASH_MS * fps) / 1000));
+}
+
+/**
+ * Index de la premiere frame flashee.
+ *
+ * Vise FLASH_AT_MS, mais recule si la video est trop courte pour que le flash
+ * y tienne en entier — sinon il tomberait apres la fin et ne servirait a rien.
+ * Ne descend jamais sous la frame 1 : la frame 0 reste intacte, c'est elle
+ * qu'Instagram utilise comme vignette du Reel.
+ */
+export function flashStartFrame(meta) {
+  const fps = targetFps(meta);
+  const frames = flashFrames(meta);
+  const total = Math.round((meta && meta.duration ? meta.duration : 0) * fps);
+  const wanted = Math.round((FLASH_AT_MS * fps) / 1000);
+  // une frame de marge apres le flash, pour ne pas finir pile sur la derniere
+  const latest = total > 0 ? total - frames - 1 : wanted;
+  return Math.max(1, Math.min(wanted, latest));
 }
 
 const FFMPEG = process.env.FFMPEG_PATH || 'ffmpeg';
@@ -267,15 +290,17 @@ function tonemapChain(caps) {
 }
 
 /**
- * `enable` compte en frames (n), jamais en secondes.
- * cover=false : between(n,1,N)  -> la frame 0 reste intacte (vignette du Reel)
- * cover=true  : lt(n,N)         -> le flash devient la couverture
+ * `enable` compte en frames (n), jamais en secondes : c'est plus precis, et
+ * c'est le nombre de frames qui decide si le flash survit au reencodage.
+ * between(n, debut, debut + N - 1) -> N frames consecutives a partir de `debut`.
  */
-export function enableExpr(frames, cover) {
-  return cover ? `lt(n,${frames})` : `between(n,1,${frames})`;
+export function enableExpr(startFrame, frames) {
+  const start = Math.max(0, Math.round(startFrame));
+  const end = start + Math.max(1, Math.round(frames)) - 1;
+  return `between(n,${start},${end})`;
 }
 
-export function buildFilterComplex({ meta, frames, cover, caps }) {
+export function buildFilterComplex({ meta, frames, startFrame, caps }) {
   const parts = [`fps=${targetFps(meta)}`];
 
   // ffmpeg applique deja la rotation au decodage dans la quasi-totalite des
@@ -294,11 +319,12 @@ export function buildFilterComplex({ meta, frames, cover, caps }) {
 
   const base = `[0:v]${parts.join(',')}[base]`;
   const img = `[1:v]${FIT}[img]`;
-  const ov = `[base][img]overlay=0:0:enable='${enableExpr(frames, cover)}'[v]`;
+  const start = startFrame === undefined ? flashStartFrame(meta) : startFrame;
+  const ov = `[base][img]overlay=0:0:enable='${enableExpr(start, frames)}'[v]`;
   return `${base};${img};${ov}`;
 }
 
-export function buildEncodeArgs({ input, image, output, meta, frames, cover, caps }) {
+export function buildEncodeArgs({ input, image, output, meta, frames, startFrame, caps }) {
   const fps = targetFps(meta);
   // marge de debit large : Instagram reencode par-dessus, mieux vaut lui donner
   // une source propre plutot qu'une source deja compressee deux fois
@@ -319,7 +345,7 @@ export function buildEncodeArgs({ input, image, output, meta, frames, cover, cap
     ...(caps.autorotate ? [] : ['-noautorotate']),
     '-i', input,
     '-i', image,
-    '-filter_complex', buildFilterComplex({ meta, frames, cover, caps }),
+    '-filter_complex', buildFilterComplex({ meta, frames, startFrame, caps }),
     '-map', '[v]',
     '-map', '0:a?',
     '-r', String(fps),
@@ -347,9 +373,9 @@ export function buildEncodeArgs({ input, image, output, meta, frames, cover, cap
 
 const FRAME_RE = /frame=\s*(\d+)/g;
 
-export async function encode({ input, image, output, meta, frames, cover, onProgress, caps: capsOverride }) {
+export async function encode({ input, image, output, meta, frames, startFrame, onProgress, caps: capsOverride }) {
   const caps = capsOverride || (await capabilities());
-  const args = buildEncodeArgs({ input, image, output, meta, frames, cover, caps });
+  const args = buildEncodeArgs({ input, image, output, meta, frames, startFrame, caps });
 
   const totalFrames = Math.max(1, Math.round((meta.duration || 0) * targetFps(meta)));
   let last = -1;
@@ -378,7 +404,7 @@ export async function encode({ input, image, output, meta, frames, cover, onProg
 // strip de preview : frames 0..N+2 telles qu'elles sortiront
 // ---------------------------------------------------------------------------
 
-export async function previewStrip({ input, image, meta, frames, cover, count, outDir, caps: capsOverride }) {
+export async function previewStrip({ input, image, meta, frames, startFrame, count, outDir, caps: capsOverride }) {
   const caps = capsOverride || (await capabilities());
   const n = count ?? frames + 3; // frames 0 .. N+2
   await run(FFMPEG, [
@@ -386,7 +412,7 @@ export async function previewStrip({ input, image, meta, frames, cover, count, o
     ...(caps.autorotate ? [] : ['-noautorotate']),
     '-i', input,
     '-i', image,
-    '-filter_complex', `${buildFilterComplex({ meta, frames, cover, caps })};[v]scale=162:288[out]`,
+    '-filter_complex', `${buildFilterComplex({ meta, frames, startFrame, caps })};[v]scale=162:288[out]`,
     '-map', '[out]',
     '-frames:v', String(n),
     '-q:v', '4',
